@@ -1,0 +1,164 @@
+Private Function FiscalDictionary(ByVal realDate As Date)
+'returns first Monday of month
+Dim firstMonday, sheetDate As Date
+Dim dateString As String
+Dim rowNum As Integer
+rowNum = 2
+sheetDate = ThisWorkbook.Sheets("Sheet1").Range("B1").Value
+If realDate < sheetDate Then
+    FiscalDictionary = "N/A"
+End If
+
+'loop through table
+Do While realDate >= sheetDate
+sheetDate = ThisWorkbook.Sheets("Sheet1").Range("B" & rowNum).Value
+If Year(realDate) - Year(sheetDate) > 1 Then
+    rowNum = rowNum + 10 * (Year(realDate) - Year(sheetDate) - 1)
+Else
+    rowNum = rowNum + 1
+End If
+'Stop overflow
+If rowNum > 108 Then
+    FiscalDictionary = "N/A"
+End If
+
+Loop
+
+
+'account for december roll over
+'If Month(realdate) = 12 Then
+'datestring = (Year(realdate) + 1) & 1
+'Else
+'datestring = Year(realdate) & (Month(realdate) + 1)
+'End If
+'
+''compare to first monday
+'If realdate < dict(datestring) Then
+'datestring = Year(realdate) & Month(realdate)
+'End If
+'
+'FirstMonday = dict(datestring)
+'return corresponding value
+FiscalDictionary = ThisWorkbook.Sheets("Sheet1").Range("A" & (rowNum - 2)).Value & " " & ThisWorkbook.Sheets("Sheet1").Range("B" & (rowNum - 2)).Value & " " & rowNum
+
+End Function
+
+Public Function FISCALMONTH(ByVal fisdate As Date)
+
+Dim splitholder() As String
+Dim fismonth As Integer
+
+splitholder = Split(FiscalDictionary(fisdate), " ")
+fismonth = Mid(splitholder(0), 5, Len(splitholder(0)) - 4)
+
+FISCALMONTH = fismonth
+
+End Function
+
+Public Function FISCALMONTHNAME(ByVal fisdate As Date)
+
+Dim Months As Variant
+Months = Array("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+FISCALMONTHNAME = Months(FISCALMONTH(fisdate))
+
+End Function
+
+Public Function FISCALWEEKMONDAY(ByVal fisdate As Date)
+
+Dim splitholder() As String
+Dim fisweek As Date
+
+splitholder = Split(FiscalDictionary(fisdate), " ")
+fisweek = CDate(splitholder(1))
+fisweek = fisdate - Weekday(fisdate, 3)
+
+
+FISCALWEEKMONDAY = Format(fisweek, "MM/DD/YYYY")
+
+
+End Function
+
+
+Public Function FISCALMONTHSTART(ByVal fisdate As Date)
+
+
+Dim splitholder() As String
+Dim monthStart As Date
+
+splitholder = Split(FiscalDictionary(fisdate), " ")
+monthStart = CDate(splitholder(1))
+
+FISCALMONTHSTART = Format(monthStart, "MM/DD/YYYY")
+
+End Function
+
+Public Function FISCALWEEKSPERMONTH(ByVal monthnum As Integer, ByVal yearnum As Integer)
+
+
+
+Dim rowNum, retVal As Integer
+Dim fiscalcode As String
+Dim firstcol As Range
+Dim startDate As Date
+
+
+fiscalcode = yearnum & monthnum
+rowNum = 199
+
+
+For i = 1 To 108
+
+If fiscalcode = ThisWorkbook.Sheets("Sheet1").Range("A" & i).Value Then
+    rowNum = i
+    
+    
+End If
+
+Next i
+
+If rowNum = 199 Then
+retVal = 0
+
+Else
+retVal = (ThisWorkbook.Sheets("Sheet1").Range("B" & rowNum + 1).Value - ThisWorkbook.Sheets("Sheet1").Range("B" & rowNum).Value) / 7
+End If
+
+
+FISCALWEEKSPERMONTH = retVal
+End Function
+
+Public Function SumSame(SameCell As Range, Optional ByVal start As Integer = 1, Optional ByVal last As Integer = 0)
+
+Dim i, sheetCount As Integer
+Dim CellString As String
+Dim finSum As Double
+
+i = 1
+finSum = 0
+CellString = SameCell.Address
+sheetCount = ActiveWorkbook.Worksheets.Count
+
+'Check if parameters supplied
+If start <> 1 Then
+i = start
+End If
+
+If last <> 0 Then
+sheetCount = last
+End If
+
+
+'loop through sheets
+For r = i To sheetCount
+
+    finSum = finSum + ActiveWorkbook.Worksheets(r).Range(CellString).Value
+
+
+Next r
+
+SumSame = finSum
+
+End Function
+
